@@ -1,0 +1,23 @@
+{
+  "name": "My Secretary",
+  "short_name": "Secretary",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f1f5ef",
+  "theme_color": "#10403b",
+  "description": "Persistent daily task reminders with snooze and completion actions.",
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

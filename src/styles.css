@@ -1,0 +1,188 @@
+:root {
+  --bg: #f1f5ef;
+  --panel: #ffffff;
+  --ink: #10231d;
+  --muted: #4f665f;
+  --line: #c9d7d0;
+  --accent: #10403b;
+  --accent-strong: #0a2d2a;
+  --warn: #7a1f1f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  background: radial-gradient(circle at top left, #dbe8df, var(--bg) 45%);
+  color: var(--ink);
+}
+
+.shell {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 20px rgba(16, 35, 29, 0.06);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 1.6rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0.35rem 0 0.8rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  display: block;
+  font-size: 0.88rem;
+  margin-bottom: 0.25rem;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 0.58rem 0.65rem;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+button:hover {
+  background: var(--accent-strong);
+}
+
+button.secondary {
+  background: #d7e5dd;
+  color: var(--ink);
+}
+
+button.secondary:hover {
+  background: #c1d8cc;
+}
+
+button.ghost {
+  width: auto;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: transparent;
+}
+
+.controls {
+  margin-top: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.task-item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.pill {
+  display: inline-block;
+  font-size: 0.77rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: #d7e5dd;
+}
+
+.state-overdue {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.actions button {
+  width: auto;
+  padding: 0.44rem 0.62rem;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
