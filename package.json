@@ -11,11 +11,9 @@
   },
   "dependencies": {
     "@angular/common": "latest",
-    "@angular/compiler": "latest",
     "@angular/core": "latest",
     "@angular/forms": "latest",
     "@angular/platform-browser": "latest",
-    "@angular/platform-browser-dynamic": "latest",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "rxjs": "latest",
@@ -35,5 +33,8 @@
     "karma-jasmine": "latest",
     "karma-jasmine-html-reporter": "latest",
     "typescript": "latest"
+  },
+  "overrides": {
+    "ajv": "8.18.0"
   }
 }
