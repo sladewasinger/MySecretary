@@ -8,6 +8,8 @@ Angular standalone + signals PWA with Android Web Push support.
 - Repeating reminders every minute until complete or snoozed (5, 10, 30 min).
 - Notification action buttons for complete and snooze.
 - Web Push backend scheduler so Android Chrome can notify even when the PWA is closed.
+- Authenticated multi-user backend storage with token-based login/registration.
+- Delivery diagnostics UI for backend sync/subscription/push scheduler status.
 
 ## Project layout
 
@@ -36,13 +38,14 @@ npx web-push generate-vapid-keys
 3. Set frontend runtime config in `public/runtime-config.js`:
 ```js
 window.__SECRETARY_CONFIG__ = {
-  apiBaseUrl: "",
+  apiBaseUrl: "http://localhost:8787",
   vapidPublicKey: ""
 };
 ```
 
 4. Local development (frontend + backend on separate ports):
 ```bash
+AUTH_SECRET="CHANGE_ME" \
 VAPID_PUBLIC_KEY="YOUR_PUBLIC_KEY" \
 VAPID_PRIVATE_KEY="YOUR_PRIVATE_KEY" \
 VAPID_SUBJECT="mailto:you@example.com" \
@@ -55,6 +58,7 @@ For local split-origin dev, set `apiBaseUrl: "http://localhost:8787"` in `public
 5. One-origin deployment (recommended):
 ```bash
 npm run build
+AUTH_SECRET="CHANGE_ME" \
 VAPID_PUBLIC_KEY="YOUR_PUBLIC_KEY" \
 VAPID_PRIVATE_KEY="YOUR_PRIVATE_KEY" \
 VAPID_SUBJECT="mailto:you@example.com" \
@@ -74,12 +78,19 @@ Then open `http://localhost:8787`, install as PWA on Android, sign in, create ta
 
 - `GET /health`
 - `GET /api/public-config`
-- `POST /api/register-device`
-- `POST /api/sync-tasks`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/tasks` (auth required)
+- `POST /api/register-device` (auth required)
+- `POST /api/sync-tasks` (auth required)
+- `GET /api/diagnostics` (auth required)
 
 ## Backend env vars
 
 - `PORT`: backend HTTP port (default `8787`)
+- `AUTH_SECRET`: HMAC secret for auth tokens (required for production)
+- `AUTH_TOKEN_TTL_MS`: token lifetime in milliseconds (default 7 days)
+- `PASSWORD_MIN_LENGTH`: minimum account password length (default `8`)
 - `VAPID_PUBLIC_KEY`: push public key
 - `VAPID_PRIVATE_KEY`: push private key
 - `VAPID_SUBJECT`: contact URI for VAPID

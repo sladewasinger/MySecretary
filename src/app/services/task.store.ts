@@ -1,12 +1,14 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { NewTaskInput, TaskItem, TaskStatus } from '../models/task-item';
 
-const STORAGE_KEY = 'my-secretary-items';
+const LEGACY_STORAGE_KEY = 'my-secretary-items';
+const STORAGE_KEY_PREFIX = 'my-secretary-items:';
 const CLOCK_TICK_MS = 30_000;
 
 @Injectable({ providedIn: 'root' })
 export class TaskStore {
-  private readonly itemsState = signal<TaskItem[]>(this.readItems());
+  private readonly itemsState = signal<TaskItem[]>([]);
+  private readonly activeStorageKey = signal<string | null>(null);
   private readonly nowState = signal(new Date());
 
   readonly items = this.itemsState.asReadonly();
@@ -22,7 +24,26 @@ export class TaskStore {
     window.setInterval(() => this.nowState.set(new Date()), CLOCK_TICK_MS);
   }
 
+  setActiveUser(userName: string | null): void {
+    const normalizedUserName = userName?.trim().toLowerCase() ?? '';
+    if (!normalizedUserName) {
+      this.activeStorageKey.set(null);
+      this.itemsState.set([]);
+      return;
+    }
+    const nextStorageKey = `${STORAGE_KEY_PREFIX}${normalizedUserName}`;
+    this.activeStorageKey.set(nextStorageKey);
+    this.itemsState.set(this.readItems(nextStorageKey));
+  }
+
+  replaceItems(items: TaskItem[]): void {
+    this.commit(this.normalizeIncomingItems(items));
+  }
+
   ensureMvpTask(): void {
+    if (!this.activeStorageKey()) {
+      return;
+    }
     const hasDailyCleaning = this.itemsState().some(
       (item) => item.kind === 'task' && item.title.toLowerCase() === 'daily cleaning'
     );
@@ -161,20 +182,59 @@ export class TaskStore {
 
   private commit(items: TaskItem[]): void {
     this.itemsState.set(items);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    const storageKey = this.activeStorageKey();
+    if (storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify(items));
+    }
   }
 
-  private readItems(): TaskItem[] {
-    const storedValue = localStorage.getItem(STORAGE_KEY);
+  private readItems(storageKey: string): TaskItem[] {
+    const storedValue = localStorage.getItem(storageKey);
     if (!storedValue) {
+      const legacyValue = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (legacyValue) {
+        localStorage.setItem(storageKey, legacyValue);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
+    const resolvedValue = localStorage.getItem(storageKey);
+    if (!resolvedValue) {
       return [];
     }
     try {
-      const parsed = JSON.parse(storedValue) as TaskItem[];
-      return Array.isArray(parsed) ? parsed : [];
+      const parsed = JSON.parse(resolvedValue) as TaskItem[];
+      return this.normalizeIncomingItems(parsed);
     } catch {
       return [];
     }
+  }
+
+  private normalizeIncomingItems(items: TaskItem[]): TaskItem[] {
+    if (!Array.isArray(items)) {
+      return [];
+    }
+    return items
+      .filter((item) => item && typeof item.id === 'string' && typeof item.title === 'string')
+      .map((item) => {
+        const kind = item.kind === 'medication' ? 'medication' : 'task';
+        return {
+          id: item.id,
+          kind,
+          title: item.title.trim(),
+          description: typeof item.description === 'string' ? item.description : '',
+          schedule: {
+            type: 'daily',
+            time: typeof item.schedule?.time === 'string' ? item.schedule.time : '09:00'
+          },
+          state: {
+            lastCompletedDate:
+              typeof item.state?.lastCompletedDate === 'string' ? item.state.lastCompletedDate : null,
+            snoozedUntil: typeof item.state?.snoozedUntil === 'string' ? item.state.snoozedUntil : null,
+            lastAlertedAt: typeof item.state?.lastAlertedAt === 'string' ? item.state.lastAlertedAt : null
+          }
+        } as TaskItem;
+      })
+      .filter((item) => item.title.length > 0 && this.isValidTime(item.schedule.time));
   }
 
   private toDayKey(date: Date): string {
