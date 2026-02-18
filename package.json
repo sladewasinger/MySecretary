@@ -5,6 +5,7 @@
   "scripts": {
     "start": "ng serve",
     "build": "ng build",
+    "start:prod": "npm run build && npm run server",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "server": "node server/index.js"

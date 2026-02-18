@@ -8,6 +8,10 @@ const PORT = Number(process.env.PORT || 8787);
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@example.com';
+const FRONTEND_DIST_DIR =
+  process.env.FRONTEND_DIST_DIR || path.join(__dirname, '..', 'dist', 'my-secretary', 'browser');
+const FRONTEND_INDEX_FILE = path.join(FRONTEND_DIST_DIR, 'index.html');
+const SERVE_FRONTEND = resolveServeFrontend(FRONTEND_INDEX_FILE);
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'store.json');
 const PUSH_INTERVAL_MS = 30_000;
@@ -20,6 +24,13 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
+if (SERVE_FRONTEND) {
+  app.use(
+    express.static(FRONTEND_DIST_DIR, {
+      index: false
+    })
+  );
+}
 
 app.get('/health', (_req, res) => {
   res.json({
@@ -66,10 +77,19 @@ app.post('/api/sync-tasks', (req, res) => {
   res.json({ ok: true, taskCount: user.tasks.length });
 });
 
+if (SERVE_FRONTEND) {
+  app.get(/^(?!\/api(?:\/|$)|\/health$).*/, (_req, res) => {
+    res.sendFile(FRONTEND_INDEX_FILE);
+  });
+}
+
 app.listen(PORT, () => {
   console.log(`My Secretary push server listening on http://localhost:${PORT}`);
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
     console.log('Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to enable push delivery.');
+  }
+  if (SERVE_FRONTEND) {
+    console.log(`Serving frontend bundle from ${FRONTEND_DIST_DIR}`);
   }
 });
 
@@ -255,4 +275,15 @@ function ensureStoreFile() {
   if (!fs.existsSync(DATA_FILE)) {
     fs.writeFileSync(DATA_FILE, JSON.stringify({ users: {} }, null, 2));
   }
+}
+
+function resolveServeFrontend(frontendIndexFile) {
+  const explicit = process.env.SERVE_FRONTEND?.trim().toLowerCase();
+  if (explicit === 'true') {
+    return true;
+  }
+  if (explicit === 'false') {
+    return false;
+  }
+  return fs.existsSync(frontendIndexFile);
 }

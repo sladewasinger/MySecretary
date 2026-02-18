@@ -33,28 +33,36 @@ npm install
 npx web-push generate-vapid-keys
 ```
 
-3. Start backend with your keys:
+3. Set frontend runtime config in `public/runtime-config.js`:
+```js
+window.__SECRETARY_CONFIG__ = {
+  apiBaseUrl: "",
+  vapidPublicKey: ""
+};
+```
+
+4. Local development (frontend + backend on separate ports):
 ```bash
 VAPID_PUBLIC_KEY="YOUR_PUBLIC_KEY" \
 VAPID_PRIVATE_KEY="YOUR_PRIVATE_KEY" \
 VAPID_SUBJECT="mailto:you@example.com" \
 npm run server
-```
-
-4. Set frontend runtime config in `public/runtime-config.js`:
-```js
-window.__SECRETARY_CONFIG__ = {
-  apiBaseUrl: "http://localhost:8787",
-  vapidPublicKey: ""
-};
-```
-
-5. Start Angular app:
-```bash
 npm start
 ```
 
-6. Open `http://localhost:4200`, install as PWA on Android, sign in, create tasks, then tap `Enable notifications`.
+For local split-origin dev, set `apiBaseUrl: "http://localhost:8787"` in `public/runtime-config.js`.
+
+5. One-origin deployment (recommended):
+```bash
+npm run build
+VAPID_PUBLIC_KEY="YOUR_PUBLIC_KEY" \
+VAPID_PRIVATE_KEY="YOUR_PRIVATE_KEY" \
+VAPID_SUBJECT="mailto:you@example.com" \
+SERVE_FRONTEND=true \
+npm run server
+```
+
+Then open `http://localhost:8787`, install as PWA on Android, sign in, create tasks, then tap `Enable notifications`.
 
 ## Android behavior
 
@@ -68,3 +76,12 @@ npm start
 - `GET /api/public-config`
 - `POST /api/register-device`
 - `POST /api/sync-tasks`
+
+## Backend env vars
+
+- `PORT`: backend HTTP port (default `8787`)
+- `VAPID_PUBLIC_KEY`: push public key
+- `VAPID_PRIVATE_KEY`: push private key
+- `VAPID_SUBJECT`: contact URI for VAPID
+- `SERVE_FRONTEND`: `true` or `false`; if omitted, backend auto-serves frontend when `dist/my-secretary/browser/index.html` exists
+- `FRONTEND_DIST_DIR`: optional override for built frontend directory
